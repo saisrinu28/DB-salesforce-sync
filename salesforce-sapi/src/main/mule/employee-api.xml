@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+    <http:listener-config name="employee-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="employee-api-config" api="employee-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="02d5f65a-fa92-4e60-9772-705deb196794">
+        <salesforce:basic-connection username="sai.srinuprasad@gmail.com" password="Sripadasai@1868" securityToken="DhDdEC6RquSEzW6tjB8qUCZW" />
+    </salesforce:sfdc-config>
+    <os:object-store name="emp_key_Object_store" doc:name="Object store" doc:id="1de77151-46f2-4b52-91f9-209471203113" />
+	<flow name="employee-api-main">
+        <http:listener config-ref="employee-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="employee-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="employee-api-console">
+        <http:listener config-ref="employee-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="employee-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\employees:application\json:employee-api-config">
+        <logger level="INFO" message="put:\employees:application\json:employee-api-config" />
+    </flow>
+    <flow name="delete:\employees:application\json:employee-api-config">
+        <logger level="INFO" message="delete:\employees:application\json:employee-api-config" />
+    </flow>
+    <flow name="get:\employees:employee-api-config">
+        <logger level="INFO" message="get:\employees:employee-api-config" />
+        <salesforce:query doc:name="Query" doc:id="493683d7-99ee-4380-a911-2b27efa7f8ac" config-ref="Salesforce_Config">
+            <salesforce:salesforce-query><![CDATA[SELECT employee_id__c,name,email__C, designation__C,contact_number__c, join_date__c,location__c,Date_of_Birth__c  FROM Employee__c  WHERE employee_id__c >= :emp_id]]></salesforce:salesforce-query>
+            <salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	emp_id : "'"++ attributes.queryParams.fromRecord ++ "'"
+}]]]></salesforce:parameters>
+        </salesforce:query>
+        <ee:transform doc:name="Transform Message" doc:id="71c17713-babd-4d55-aef6-51b316aad14a">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map (item, index) -> {
+	name: item.Name,
+	employee_id: item.employee_id__c,
+	email_id : item.email__c,
+	contact_id : item.contact_number__c,
+	designation: item.designation__c,
+	dateOfBirth: item.Date_of_Birth__c,
+	join_date: item.join_date__c,
+	city: item.location__c
+	
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\employees:application\json:employee-api-config">
+        <logger level="INFO" message="post:\employees:application\json:employee-api-config" />
+		<ee:transform doc:name="Transform Message" doc:id="0d123956-18a1-4b10-ac3d-d533131daba7" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="recordKeyVar" ><![CDATA[output application/json
+---
+{
+	recordKey: payload.email
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<os:contains doc:name="Contains" doc:id="c47fccd2-df7a-4c4e-b86d-fe318e29751d" key="#[vars.recordKeyVar.recordKey]" objectStore="emp_key_Object_store" target="isEmpExists"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2e773dce-8c1f-4b1a-9bf4-ce84978e9b33" message="is record exists in the salesforce is  #[vars.isEmpExists]" />
+		<choice doc:name="Choice" doc:id="0cb024b7-11af-4c4e-a47f-038c70d20bee" >
+			<when expression="#[!vars.isEmpExists]">
+				<ee:transform doc:name="Transform Message" doc:id="f725f5de-9cb7-4fbf-8bc4-cfc2bd11ad03">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Name: payload.name,
+	//employee_id__c: payload."employee-id" as String,
+	email__c: (payload.email ) ,
+	designation__c: payload.designation,
+	contact_number__c: payload.phoneNumber,
+	join_date__c: payload.joinDate as Date,
+	location__c: payload.location,
+	Date_of_Birth__c: payload.dob as Date
+}]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<salesforce:create type="Employee__c" doc:name="Create" doc:id="7bd0588f-5e84-4260-b934-6534b5a2edf8" config-ref="Salesforce_Config" target="createStatusVar"/>
+				<os:store doc:name="Store" doc:id="ceaf47bf-1b7a-4fea-a4d4-a779648e7ab6" key="#[vars.recordKeyVar.recordKey]" objectStore="emp_key_Object_store">
+					<os:value ><![CDATA[#[payload.Name]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="Transform Message" doc:id="27f9e8f2-d398-4c4b-a830-83c33334a1da">
+            <ee:message>
+                <ee:set-payload><![CDATA[output application/json
+---
+{
+	message: vars.createStatusVar.message,
+	result: vars.createStatusVar.items map (item, index) -> {
+		isSuccess: item.successful,
+		message: item.message,
+		statusCode : item.statusCode
+		
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="ac8751da-fe32-4fa3-b332-e76832461aa1" message="record already exists"/>
+				<set-payload value="Record already exists in Salesforce" doc:name="Set Payload" doc:id="61c2cd8b-7763-4702-8bf5-02cc73c7be8f" />
+			</otherwise>
+		</choice>
+    </flow>
+</mule>

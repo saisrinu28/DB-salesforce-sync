@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+    <http:listener-config name="employee-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="employee-api-config" api="employee-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="228863d9-aef4-409c-9367-3e90c9ccac8f" >
+		<db:my-sql-connection host="mysql-73465-0.cloudclusters.net" port="19058" user="admin" password="D15kG0fo" database="usr_management" />
+	</db:config>
+	<os:object-store name="emp_key_Object_store" doc:name="Object store" doc:id="839b3391-21d3-4e9e-92b3-fb06d5bdb259" />
+	<flow name="employee-api-main">
+        <http:listener config-ref="employee-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="employee-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="employee-api-console">
+        <http:listener config-ref="employee-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="employee-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\employees:application\json:employee-api-config">
+        <logger level="INFO" message="put:\employees:application\json:employee-api-config" />
+    </flow>
+    <flow name="delete:\employees:application\json:employee-api-config">
+        <logger level="INFO" message="delete:\employees:application\json:employee-api-config" />
+    </flow>
+    <flow name="get:\employees:employee-api-config">
+        <logger level="INFO" message="get:\employees:employee-api-config" />
+		<choice doc:name="Choice" doc:id="257f2886-3b08-4dc3-a296-123a65ef0df7" >
+			<when expression="#[attributes.queryParams.fromRecord != null]">
+				<db:select doc:name="Select" doc:id="55cc66c3-6f0c-4329-8367-0c2354c88a2a" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from employee where employee_id >= :empId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	empId : attributes.queryParams.fromRecord
+}]]]></db:input-parameters>
+		</db:select>
+			</when>
+			<otherwise >
+				<db:select doc:name="Select" doc:id="42210520-e885-4034-9ffb-7cbe2e013ee4" config-ref="Database_Config">
+					<db:sql ><![CDATA[select * from employee]]></db:sql>
+				</db:select>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="a3079a72-9f49-4617-a01b-9d76515e7dd3">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map (employee, index) -> {
+	name: employee.emp_name,
+	designation: employee.designation,
+	dob: employee.dob,
+	phoneNumber: employee.contact_no,
+	email: employee.email,
+	location: employee.city,
+	joinDate: employee.date_of_join
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+    </flow>
+    <flow name="post:\employees:application\json:employee-api-config">
+        <logger level="INFO" message="post:\employees:application\json:employee-api-config" />
+		<ee:transform doc:name="Transform Message" doc:id="bc2e9945-a245-4265-aa45-684d3fa13dc4" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="recordKey" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	recordKey: payload.email
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<os:contains doc:name="Contains" doc:id="ea59b7b9-1197-4835-8d95-96b07606e86b" key="#[vars.recordKey.recordKey]" objectStore="emp_key_Object_store" target="isEmpExists"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5157e5b8-78c6-40d3-8b2d-3f4a227ef558" message="is record exists in the database #[vars.isEmpExists]"/>
+		<choice doc:name="Choice" doc:id="816526a8-8f33-4277-bd1d-4049baf97e72" >
+			<when expression="#[!vars.isEmpExists]">
+				<db:insert doc:name="Insert" doc:id="6c86e537-44e4-40e2-bfa1-53dabb1afedc" config-ref="Database_Config" target="insertStatusVar">
+			<db:sql><![CDATA[insert into usr_management.employee(emp_name,designation,contact_no,email,dob,date_of_join,city) values(:empname,:designation,:contact,:email,:dob,:join_date,:city)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	empname: payload.name,
+	designation: payload.designation,
+	contact: payload.phoneNumber,
+	email: payload.email,
+	dob: payload.dob,
+	join_date: payload.joinDate,
+	city: payload.location
+}]]]></db:input-parameters>
+		</db:insert>
+				<os:store doc:name="Store" doc:id="dbc918c7-a9ae-4934-bc30-a7177ff87491" key="#[vars.recordKey.recordKey]" objectStore="emp_key_Object_store">
+					<os:value ><![CDATA[#[payload.name]]]></os:value>
+				</os:store>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="870a1a83-c1c8-4e9b-9ce6-628af5f248bf" message="record already exists"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="b8dbb338-1ea4-423b-9c87-64fb8c334025" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	affectedRows: vars.insertStatusVar.affectedRows
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+	<flow name="employee-apiFlow" doc:id="7657efba-3ef1-4411-bfc9-2e9922007459" >
+		<http:listener doc:name="Listener" doc:id="f3833e41-a0e3-48db-ba9f-e987b43745cb" config-ref="employee-api-httpListenerConfig" path="/clearObjectStore"/>
+		<os:clear doc:name="Clear" doc:id="9c60a5f5-bd8f-44ff-95d2-90d2e287f22b" objectStore="emp_key_Object_store"/>
+	</flow>
+</mule>
