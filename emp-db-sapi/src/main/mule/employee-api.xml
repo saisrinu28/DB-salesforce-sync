@@ -3,9 +3,16 @@
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
-  
+    <http:listener-config name="employee-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="employee-api-config" api="employee-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="228863d9-aef4-409c-9367-3e90c9ccac8f" >
+		<db:my-sql-connection host="mysql-73465-0.cloudclusters.net" port="19058" user="admin" password="D15kG0fo" database="usr_management" />
+	</db:config>
+	<os:object-store name="emp_key_Object_store" doc:name="Object store" doc:id="839b3391-21d3-4e9e-92b3-fb06d5bdb259" />
 	<flow name="employee-api-main">
-        <http:listener config-ref="employee-api-httpListenerConfig" path="${secure::http.path}">
+        <http:listener config-ref="employee-api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:response>

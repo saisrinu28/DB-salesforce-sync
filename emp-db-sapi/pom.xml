@@ -17,102 +17,6 @@
 		<mule.maven.plugin.version>3.5.2</mule.maven.plugin.version>
 	</properties>
 
-	<profiles>
-		<profile>
-			<id>dev</id>
-			<build>
-				<plugins>
-
-					<plugin>
-						<groupId>org.mule.tools.maven</groupId>
-						<artifactId>mule-maven-plugin</artifactId>
-						<version>${mule.maven.plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<cloudHubDeployment>
-								<applicationName>emp-db-sapi-dev-impl-sst</applicationName>
-								<environment>dev</environment>
-								<region>us-east-1</region>
-								<workers>1</workers>
-								<workerType>MICRO</workerType>
-								<objectStoreV2>true</objectStoreV2>
-								<properties>
-									<http.port>8081</http.port>
-									<env>dev</env>
-									<secure.key>mule123</secure.key>
-									<api-id>17753719</api-id>
-									<anypoint.platform.client_id>d24c5819f5be4fad8e7ee46faf3be629</anypoint.platform.client_id>
-									<anypoint.platform.client_secret>b7Ee5656F9e841b8A1a8FFEB526D834c</anypoint.platform.client_secret>
-								</properties>
-							</cloudHubDeployment>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>qa</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.mule.tools.maven</groupId>
-						<artifactId>mule-maven-plugin</artifactId>
-						<version>${mule.maven.plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<cloudHubDeployment>
-								<applicationName>emp-db-sapi-qa-impl-sst</applicationName>
-								<environment>qa</environment>
-								<region>us-east-1</region>
-								<workers>1</workers>
-								<workerType>MICRO</workerType>
-								<objectStoreV2>true</objectStoreV2>
-								<properties>
-									<http.port>8081</http.port>
-									<env>qa</env>
-									<api-id>17753720</api-id>
-									<secure.key>mule123</secure.key>
-									<anypoint.platform.client_id>020b9a9699ca42889c1ca9c49d3e16d7</anypoint.platform.client_id>
-									<anypoint.platform.client_secret>957523a2827F4859a1f09F35D4362cAe</anypoint.platform.client_secret>
-								</properties>
-							</cloudHubDeployment>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>prod</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.mule.tools.maven</groupId>
-						<artifactId>mule-maven-plugin</artifactId>
-						<version>${mule.maven.plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<cloudHubDeployment>
-								<applicationName>emp-db-sapi-prod-impl-sst</applicationName>
-								<environment>prod</environment>
-								<region>us-east-1</region>
-								<workers>1</workers>
-								<workerType>MICRO</workerType>
-								<objectStoreV2>true</objectStoreV2>
-								<properties>
-									<http.port>8081</http.port>
-									<env>prod</env>
-									<secure.key>mule123</secure.key>
-									<api-id>17753721</api-id>
-									<anypoint.platform.client_id>${anypoint.platform.client_id}</anypoint.platform.client_id>
-									<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
-								</properties>
-							</cloudHubDeployment>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 	<build>
 		<plugins>
 			<plugin>
@@ -126,17 +30,12 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<cloudHubDeployment>
-						<uri>https://anypoint.mulesoft.com</uri>
-						<muleVersion>4.4.0</muleVersion>
-						<username>saiapr22</username>
-						<password>Sripadasai@1868</password>
-						<properties>
-						
-							<anypoint.platform.base_uri>https://anypoint.mulesoft.com/</anypoint.platform.base_uri>
-							<anypoint.platform.analytics_base_uri>https://analytics-ingest.anypoint.mulesoft.com/</anypoint.platform.analytics_base_uri>
-						</properties>
-					</cloudHubDeployment>
+					<sharedLibraries>
+						<sharedLibrary>
+							<groupId>mysql</groupId>
+							<artifactId>mysql-connector-java</artifactId>
+						</sharedLibrary>
+					</sharedLibraries>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -178,12 +77,6 @@
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-objectstore-connector</artifactId>
 			<version>1.2.1</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
-		<dependency>
-			<groupId>com.mulesoft.modules</groupId>
-			<artifactId>mule-secure-configuration-property-module</artifactId>
-			<version>1.2.3</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
