@@ -1,0 +1,15 @@
+http:
+  host: "0.0.0.0"
+  port: "8081"
+  path: "/api/*"
+  
+db:
+  host: "mysql-73465-0.cloudclusters.net"
+  port: "19058"
+  username: "admin"
+  password: "![TcOUR7vutlMH+9PV5cRRQA==]"
+  schema: "usr_management"
+  
+      
+  
+  
