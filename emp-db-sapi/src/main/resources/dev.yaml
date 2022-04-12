@@ -4,8 +4,8 @@ http:
   path: "/api/*"
   
 db:
-  host: "aws-emp-mysql-db.cpunnoztebf0.us-east-1.rds.amazonaws.com" 
-  port: "3306"
+  host: "mysql-75548-0.cloudclusters.net" 
+  port: "19972"
   username: "admin"
-  schema: "usr_managemnt"
-  password: "![9CMNKCJwpakcPzDJHzyQGg==]"
+  schema: "emp_management"
+  password: "k5886lnF"

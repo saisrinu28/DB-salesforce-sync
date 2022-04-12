@@ -13,7 +13,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 		<db:my-sql-connection host="${secure::db.host}" port="${secure::db.port}" user="${secure::db.username}" password="${secure::db.password}" database="${secure::db.schema}" />
 	</db:config>
 	<os:object-store name="emp_key_Object_store" doc:name="Object store" doc:id="7a8dc93a-8678-49ac-8965-a37a3d6a81b2" />
-	 <api-gateway:autodiscovery apiId="${api-id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="ea31a5e4-bcbb-48d9-bc2c-6a04ff094b94" flowRef="employee-api-main" />  
+	<api-gateway:autodiscovery apiId="${api-id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="ea31a5e4-bcbb-48d9-bc2c-6a04ff094b94" flowRef="employee-api-main" />  
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="2dd75bb2-3e17-4f76-8c29-fe75d94ece47" file="${env}.yaml" key="${secure.key}" >
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
